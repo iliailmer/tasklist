@@ -17,10 +17,12 @@ struct Cli {
 }
 #[derive(Subcommand, Debug)]
 enum Commands {
+    #[clap(visible_alias = "a")]
     Add {
         #[arg(short, long)]
         description: Option<String>, // name or description of the task
     },
+    #[clap(visible_alias = "u")]
     Update {
         #[arg(short, long)]
         id: i32,
@@ -29,7 +31,9 @@ enum Commands {
         #[arg(short, long)]
         description: Option<String>,
     },
+    #[clap(visible_alias = "ls")]
     List {},
+    #[clap(visible_alias = "rm")]
     Delete {
         #[arg(short, long)]
         id: i32,
@@ -97,14 +101,21 @@ fn add_item(description: String) {
         .expect("Failed to open task list");
 
     let reader = BufReader::new(&tasklist);
-
-    let item_id = reader.lines().count() as i32;
-    let item = Item::new(item_id + 1, Status::NotStarted, description);
+    let mut max_id = 0;
+    for line in reader.lines() {
+        if let Some(id_str) = line.unwrap().split(",").next() {
+            if let Ok(id) = id_str.parse::<i32>() {
+                max_id = max_id.max(id);
+            }
+        }
+    }
+    let item = Item::new(max_id + 1, Status::NotStarted, description);
     let mut writer = BufWriter::new(&tasklist);
     if !item.description.is_empty() {
         item.write_to(&mut writer).expect("Failed to write task");
     }
     writer.flush().expect("Failed to flush writer");
+    println!("{} {}", "Added task:".green(), format!("{}", item).yellow());
 }
 
 fn update_item(id: i32, status: Status, description: Option<String>) {
@@ -139,7 +150,6 @@ fn update_item(id: i32, status: Status, description: Option<String>) {
         writer
             .write_all(line.as_bytes())
             .expect("Failed to write task");
-        writer.write_all(b"\n").expect("Failed to write newline");
     }
     writer.flush().expect("Failed to flush writer");
 }
