@@ -1,7 +1,9 @@
 [package]
 name = "todolist"
-version = "0.1.0"
+description = "A simple CLI todo list"
+version = "0.2.0"
 edition = "2024"
 
 [dependencies]
 clap = { version = "4.5.30", features = ["derive"] }
+colored = "3.0.0"
