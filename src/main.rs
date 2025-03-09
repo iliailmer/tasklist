@@ -1,131 +1,17 @@
-//TODO: finish two commands: add and update
-#[allow(dead_code)]
-use clap::{Parser, Subcommand, ValueEnum};
+mod cli;
+mod task;
+
+use crate::cli::{Cli, Commands};
+use crate::task::{Status, Task};
+
+use clap::Parser;
 use colored::Colorize;
+
 use std::collections::HashMap;
-use std::fmt;
 use std::fs::OpenOptions;
-use std::io::{self, BufRead, BufReader, BufWriter, Write};
+use std::io::{BufRead, BufReader, BufWriter, Write};
 
-#[derive(Parser, Debug)]
-#[command(
-    version,
-    name = "todolist",
-    about = "A to-do list app for command line"
-)]
-struct Cli {
-    #[command(subcommand)]
-    command: Commands, // name or description of the task
-}
-
-#[derive(Subcommand, Debug)]
-enum Commands {
-    #[clap(visible_alias = "a")]
-    Add {
-        #[arg(short, long)]
-        description: Option<String>, // name or description of the task
-    },
-    #[clap(visible_alias = "u")]
-    Update {
-        #[arg(short, long)]
-        id: i32,
-        #[arg(short, long)]
-        status: Status,
-        #[arg(short, long)]
-        description: Option<String>,
-    },
-    #[clap(visible_alias = "ls")]
-    Show {
-        #[arg(short, long)]
-        kanban: bool,
-    },
-    #[clap(visible_alias = "rm")]
-    Delete {
-        #[arg(short, long)]
-        id: i32,
-    },
-}
-
-#[derive(Debug, Clone, Copy, ValueEnum, Eq, Hash, PartialEq)]
-enum Status {
-    #[value(name = "done")]
-    Done,
-    #[value(name = "in_progress")]
-    InProgress,
-    #[value(name = "not_started")]
-    NotStarted,
-}
-
-impl Status {
-    pub const DONE_LABEL: &'static str = "✅ Done";
-    pub const IN_PROGRESS_LABEL: &'static str = "⏳ In Progress";
-    pub const NOT_STARTED_LABEL: &'static str = "🚀 Not Started";
-
-    pub fn from_str(s: &str) -> Self {
-        match s {
-            Self::DONE_LABEL => Status::Done,
-            Self::IN_PROGRESS_LABEL => Status::InProgress,
-            Self::NOT_STARTED_LABEL => Status::NotStarted,
-            _ => Status::NotStarted,
-        }
-    }
-
-    pub fn as_label(&self) -> &'static str {
-        match self {
-            Status::Done => Self::DONE_LABEL,
-            Status::InProgress => Status::IN_PROGRESS_LABEL,
-            Status::NotStarted => Status::NOT_STARTED_LABEL,
-        }
-    }
-}
-
-impl fmt::Display for Status {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Status::Done => write!(f, "✅ Done"),
-            Status::InProgress => write!(f, "⏳ In Progress"),
-            Status::NotStarted => write!(f, "🚀 Not Started"),
-        }
-    }
-}
-
-#[derive(Debug)]
-struct Item {
-    id: i32,
-    status: Status,
-    description: String,
-}
-
-impl fmt::Display for Item {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "{:<4} | {:<14} | {:<256}",
-            self.id,          // Right-align ID, 3 chars
-            self.status,      // Left-align status, 15 chars
-            self.description, // Description follows
-        )
-    }
-}
-
-impl Item {
-    fn new(id: i32, status: Status, description: String) -> Item {
-        Item {
-            id,
-            status,
-            description,
-        }
-    }
-    fn to_file_string(&self) -> String {
-        format!("{},{},{}", self.id, self.status, self.description)
-    }
-
-    fn write_to<W: Write>(&self, writer: &mut W) -> io::Result<()> {
-        writeln!(writer, "{}", self.to_file_string())
-    }
-}
-
-fn add_item(description: String) {
+fn add_task(description: String) {
     let tasklist = OpenOptions::new()
         .read(true)
         .create(true)
@@ -142,18 +28,18 @@ fn add_item(description: String) {
             }
         }
     }
-    let item = Item::new(max_id + 1, Status::NotStarted, description);
+    let task = Task::new(max_id + 1, Status::NotStarted, description);
     let mut writer = BufWriter::new(&tasklist);
-    if !item.description.is_empty() {
-        item.write_to(&mut writer).expect("Failed to write task");
+    if !task.description.is_empty() {
+        task.write_to(&mut writer).expect("Failed to write task");
     }
     writer.flush().expect("Failed to flush writer");
-    println!("{} {}", "Added task:".green(), format!("{}", item).yellow());
+    println!("{} {}", "Added task:".green(), format!("{}", task).yellow());
 }
 
-fn update_item(id: i32, status: Status, description: Option<String>) {
+fn update_task(id: i32, status: Status, description: Option<String>) {
     // read the .tasklist file
-    // process each line. if the target task id is found, edit it by creating new item.
+    // process each line. if the target task id is found, edit it by creating new task.
     let tasklist = OpenOptions::new()
         .read(true)
         .create(true)
@@ -166,9 +52,9 @@ fn update_item(id: i32, status: Status, description: Option<String>) {
         let parts: Vec<&str> = line.split(",").collect();
         if parts.len() >= 3 && parts[0].parse::<i32>().unwrap() == id {
             let new_description = description.unwrap_or(parts[2].to_string());
-            let item = Item::new(id, status, new_description);
-            *line = item.to_file_string();
-            println!("Updated task: {}", item);
+            let task = Task::new(id, status, new_description);
+            *line = task.to_file_string();
+            println!("Updated task: {}", task);
             break; // stop iterations
         }
     }
@@ -187,7 +73,7 @@ fn update_item(id: i32, status: Status, description: Option<String>) {
     writer.flush().expect("Failed to flush writer");
 }
 
-fn list_items(kanban: bool) {
+fn list_tasks(kanban: bool) {
     let tasklist = OpenOptions::new()
         .read(true)
         .create(true)
@@ -204,12 +90,12 @@ fn list_items(kanban: bool) {
             if parts.len() >= 3 {
                 let id = parts[0].parse::<i32>().unwrap();
                 let status = Status::from_str(parts[1]);
-                let item = Item::new(id, status, parts[2].to_string());
-                println!("{}", item);
+                let task = Task::new(id, status, parts[2].to_string());
+                println!("{}", task);
             }
         }
     } else {
-        let mut board: HashMap<Status, Vec<String>> = HashMap::new();
+        let mut board: HashMap<Status, Vec<(i32, String)>> = HashMap::new();
         for status in &[Status::NotStarted, Status::Done, Status::InProgress] {
             board.insert(*status, Vec::new());
         }
@@ -217,9 +103,10 @@ fn list_items(kanban: bool) {
             let line = line.unwrap();
             let parts: Vec<&str> = line.split(",").collect();
             if parts.len() >= 3 {
+                let id = parts[0].parse().unwrap();
                 let status = Status::from_str(parts[1]);
                 let description = parts[2].trim().to_string();
-                board.get_mut(&status).unwrap().push(description);
+                board.get_mut(&status).unwrap().push((id, description));
             }
         }
         let max_len = board.values().map(|v| v.len()).max().unwrap_or(0);
@@ -232,10 +119,10 @@ fn list_items(kanban: bool) {
         );
         println!("{}", "-".repeat(64));
         for i in 0..max_len {
-            for status in &[Status::NotStarted, Status::Done, Status::InProgress] {
+            for status in &[Status::NotStarted, Status::InProgress, Status::Done] {
                 if let Some(tasks) = board.get(status) {
                     if i < tasks.len() {
-                        print!("{:<20} | ", tasks[i]);
+                        print!("{} {:<20} | ", tasks[i].0, tasks[i].1);
                     } else {
                         print!("{:20} | ", "");
                     }
@@ -246,7 +133,7 @@ fn list_items(kanban: bool) {
     }
 }
 
-fn delete_item(id: i32) {
+fn delete_task(id: i32) {
     let tasklist = OpenOptions::new()
         .read(true)
         .open(".tasklist")
@@ -281,13 +168,13 @@ fn delete_item(id: i32) {
 fn main() {
     let args = Cli::parse();
     match args.command {
-        Commands::Add { description } => add_item(description.unwrap()),
+        Commands::Add { description } => add_task(description.unwrap()),
         Commands::Update {
             id,
             status,
             description,
-        } => update_item(id, status, description),
-        Commands::Show { kanban } => list_items(kanban),
-        Commands::Delete { id } => delete_item(id),
+        } => update_task(id, status, description),
+        Commands::Show { kanban } => list_tasks(kanban),
+        Commands::Delete { id } => delete_task(id),
     }
 }

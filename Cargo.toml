@@ -7,3 +7,4 @@ edition = "2024"
 [dependencies]
 clap = { version = "4.5.30", features = ["derive"] }
 colored = "3.0.0"
+home = "0.5.11"
