@@ -1,5 +1,5 @@
 [package]
-name = "todolist"
+name = "tasklist"
 description = "A simple CLI todo list"
 version = "0.3.0"
 edition = "2024"

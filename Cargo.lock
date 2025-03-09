@@ -170,7 +170,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "todolist"
+name = "tasklist"
 version = "0.3.0"
 dependencies = [
  "clap",
