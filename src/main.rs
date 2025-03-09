@@ -2,9 +2,11 @@
 #[allow(dead_code)]
 use clap::{Parser, Subcommand, ValueEnum};
 use colored::Colorize;
+use std::collections::HashMap;
 use std::fmt;
 use std::fs::OpenOptions;
 use std::io::{self, BufRead, BufReader, BufWriter, Write};
+
 #[derive(Parser, Debug)]
 #[command(
     version,
@@ -15,6 +17,7 @@ struct Cli {
     #[command(subcommand)]
     command: Commands, // name or description of the task
 }
+
 #[derive(Subcommand, Debug)]
 enum Commands {
     #[clap(visible_alias = "a")]
@@ -32,7 +35,10 @@ enum Commands {
         description: Option<String>,
     },
     #[clap(visible_alias = "ls")]
-    List {},
+    Show {
+        #[arg(short, long)]
+        kanban: bool,
+    },
     #[clap(visible_alias = "rm")]
     Delete {
         #[arg(short, long)]
@@ -40,7 +46,7 @@ enum Commands {
     },
 }
 
-#[derive(Debug, Clone, Copy, ValueEnum)]
+#[derive(Debug, Clone, Copy, ValueEnum, Eq, Hash, PartialEq)]
 enum Status {
     #[value(name = "done")]
     Done,
@@ -49,6 +55,30 @@ enum Status {
     #[value(name = "not_started")]
     NotStarted,
 }
+
+impl Status {
+    pub const DONE_LABEL: &'static str = "✅ Done";
+    pub const IN_PROGRESS_LABEL: &'static str = "⏳ In Progress";
+    pub const NOT_STARTED_LABEL: &'static str = "🚀 Not Started";
+
+    pub fn from_str(s: &str) -> Self {
+        match s {
+            Self::DONE_LABEL => Status::Done,
+            Self::IN_PROGRESS_LABEL => Status::InProgress,
+            Self::NOT_STARTED_LABEL => Status::NotStarted,
+            _ => Status::NotStarted,
+        }
+    }
+
+    pub fn as_label(&self) -> &'static str {
+        match self {
+            Status::Done => Self::DONE_LABEL,
+            Status::InProgress => Status::IN_PROGRESS_LABEL,
+            Status::NotStarted => Status::NOT_STARTED_LABEL,
+        }
+    }
+}
+
 impl fmt::Display for Status {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -58,12 +88,14 @@ impl fmt::Display for Status {
         }
     }
 }
+
 #[derive(Debug)]
 struct Item {
     id: i32,
     status: Status,
     description: String,
 }
+
 impl fmt::Display for Item {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
@@ -71,10 +103,11 @@ impl fmt::Display for Item {
             "{:<4} | {:<14} | {:<256}",
             self.id,          // Right-align ID, 3 chars
             self.status,      // Left-align status, 15 chars
-            self.description  // Description follows
+            self.description, // Description follows
         )
     }
 }
+
 impl Item {
     fn new(id: i32, status: Status, description: String) -> Item {
         Item {
@@ -153,7 +186,8 @@ fn update_item(id: i32, status: Status, description: Option<String>) {
     }
     writer.flush().expect("Failed to flush writer");
 }
-fn list_items() {
+
+fn list_items(kanban: bool) {
     let tasklist = OpenOptions::new()
         .read(true)
         .create(true)
@@ -162,22 +196,56 @@ fn list_items() {
         .expect("Failed to open task list");
     let reader = BufReader::new(&tasklist);
 
-    for line in reader.lines() {
-        let line = line.unwrap();
-        let parts: Vec<&str> = line.split(",").collect();
-        if parts.len() >= 3 {
-            let id = parts[0].parse::<i32>().unwrap();
-            let status = match parts[1] {
-                "✅ Done" => Status::Done,
-                "⏳ In Progress" => Status::InProgress,
-                "🚀 Not Started" => Status::NotStarted,
-                _ => Status::NotStarted,
-            };
-            let item = Item::new(id, status, parts[2].to_string());
-            println!("{}", item);
+    if !kanban {
+        println!("{}", "-".repeat(64));
+        for line in reader.lines() {
+            let line = line.unwrap();
+            let parts: Vec<&str> = line.split(",").collect();
+            if parts.len() >= 3 {
+                let id = parts[0].parse::<i32>().unwrap();
+                let status = Status::from_str(parts[1]);
+                let item = Item::new(id, status, parts[2].to_string());
+                println!("{}", item);
+            }
+        }
+    } else {
+        let mut board: HashMap<Status, Vec<String>> = HashMap::new();
+        for status in &[Status::NotStarted, Status::Done, Status::InProgress] {
+            board.insert(*status, Vec::new());
+        }
+        for line in reader.lines() {
+            let line = line.unwrap();
+            let parts: Vec<&str> = line.split(",").collect();
+            if parts.len() >= 3 {
+                let status = Status::from_str(parts[1]);
+                let description = parts[2].trim().to_string();
+                board.get_mut(&status).unwrap().push(description);
+            }
+        }
+        let max_len = board.values().map(|v| v.len()).max().unwrap_or(0);
+        println!("{}", "-".repeat(64));
+        println!(
+            "{:<20} | {:<20} | {:<20}",
+            Status::NOT_STARTED_LABEL,
+            Status::IN_PROGRESS_LABEL,
+            Status::DONE_LABEL
+        );
+        println!("{}", "-".repeat(64));
+        for i in 0..max_len {
+            for status in &[Status::NotStarted, Status::Done, Status::InProgress] {
+                if let Some(tasks) = board.get(status) {
+                    if i < tasks.len() {
+                        print!("{:<20} | ", tasks[i]);
+                    } else {
+                        print!("{:20} | ", "");
+                    }
+                }
+            }
+            println!();
         }
     }
 }
+
 fn delete_item(id: i32) {
     let tasklist = OpenOptions::new()
         .read(true)
@@ -209,6 +277,7 @@ fn delete_item(id: i32) {
         println!("{}", format!("No task found with ID {}", id).red());
     }
 }
+
 fn main() {
     let args = Cli::parse();
     match args.command {
@@ -218,7 +287,7 @@ fn main() {
             status,
             description,
         } => update_item(id, status, description),
-        Commands::List {} => list_items(),
+        Commands::Show { kanban } => list_items(kanban),
         Commands::Delete { id } => delete_item(id),
     }
 }
