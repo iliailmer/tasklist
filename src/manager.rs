@@ -1,9 +1,9 @@
+use crate::task::{Status, Task};
 use colored::Colorize;
-use std::collections::HashMap;
 use std::fs::OpenOptions;
 use std::io::{BufRead, BufReader, BufWriter, Write};
-
-use crate::task::{Status, Task};
+use tabled::{Table, settings::Style};
+use textwrap::fill;
 #[derive(Debug)]
 pub struct Mngr {
     tasklist_path: String,
@@ -38,7 +38,8 @@ impl Mngr {
         let task = Task::new(max_id + 1, Status::NotStarted, description);
         let mut writer = BufWriter::new(&tasklist);
         if !task.description.is_empty() {
-            task.write_to(&mut writer).expect("Failed to write task");
+            task.write_to(&mut writer)
+                .expect("Failed to write task: empty description");
         }
         writer.flush().expect("Failed to flush writer");
         println!("{} {}", "Added task:".green(), format!("{}", task).yellow());
@@ -58,10 +59,15 @@ impl Mngr {
         for line in lines.iter_mut() {
             let parts: Vec<&str> = line.split(",").collect();
             if parts.len() >= 3 && parts[0].parse::<i32>().unwrap() == id {
-                let new_description = description.unwrap_or(parts[2].to_string());
+                let new_description =
+                    String::from(description.unwrap_or(parts[2].to_string()).as_str());
                 let task = Task::new(id, status, new_description);
                 *line = task.to_file_string();
-                println!("Updated task: {}", task);
+                println!(
+                    "{} {}",
+                    "Updated task:".green(),
+                    format!("{}", task).yellow()
+                );
                 break; // stop iterations
             }
         }
@@ -80,7 +86,7 @@ impl Mngr {
         writer.flush().expect("Failed to flush writer");
     }
 
-    pub fn list_tasks(&self, kanban: bool) {
+    pub fn list_tasks(&self) {
         let tasklist = OpenOptions::new()
             .read(true)
             .create(true)
@@ -88,64 +94,26 @@ impl Mngr {
             .open(&self.tasklist_path)
             .expect("Failed to open task list");
         let reader = BufReader::new(&tasklist);
-
-        if !kanban {
-            println!(
-                "Project: {}",
-                self.title.as_ref().unwrap_or(&String::from("My Tasks"))
-            );
-            println!("{}", "-".repeat(64));
-            for line in reader.lines() {
-                let line = line.unwrap();
-                let parts: Vec<&str> = line.split(",").collect();
-                if parts.len() >= 3 {
-                    let id = parts[0].parse::<i32>().unwrap();
-                    let status = Status::from_str(parts[1]);
-                    let task = Task::new(id, status, parts[2].to_string());
-                    println!("{}", task);
-                }
-            }
-        } else {
-            let mut board: HashMap<Status, Vec<(i32, String)>> = HashMap::new();
-            for status in &[Status::NotStarted, Status::Done, Status::InProgress] {
-                board.insert(*status, Vec::new());
-            }
-            for line in reader.lines() {
-                let line = line.unwrap();
-                let parts: Vec<&str> = line.split(",").collect();
-                if parts.len() >= 3 {
-                    let id = parts[0].parse().unwrap();
-                    let status = Status::from_str(parts[1]);
-                    let description = parts[2].trim().to_string();
-                    board.get_mut(&status).unwrap().push((id, description));
-                }
-            }
-            let max_len = board.values().map(|v| v.len()).max().unwrap_or(0);
-            println!(
-                "Project: {}",
-                self.title.as_ref().unwrap_or(&String::from("My Tasks"))
-            );
-            println!("{}", "-".repeat(64));
-            println!(
-                "{:<20} | {:<20} | {:<20}",
-                Status::NOT_STARTED_LABEL,
-                Status::IN_PROGRESS_LABEL,
-                Status::DONE_LABEL
-            );
-            println!("{}", "-".repeat(64));
-            for i in 0..max_len {
-                for status in &[Status::NotStarted, Status::InProgress, Status::Done] {
-                    if let Some(tasks) = board.get(status) {
-                        if i < tasks.len() {
-                            print!("{} {:<20} | ", tasks[i].0, tasks[i].1);
-                        } else {
-                            print!("{:20} | ", "");
-                        }
-                    }
-                }
-                println!();
+        println!(
+            "Project: {}",
+            self.title.as_ref().unwrap_or(&String::from("My Tasks"))
+        );
+        let mut tasks: Vec<Task> = vec![];
+        for line in reader.lines() {
+            let line = line.unwrap();
+            let parts: Vec<&str> = line.split(",").collect();
+            if parts.len() >= 3 {
+                let id = parts[0].parse::<i32>().unwrap();
+                let status = Status::from_str(parts[1]);
+                let task = Task::new(id, status, fill(parts[2].to_string().as_str(), 50));
+                // println!("{}", task);
+                tasks.push(task);
             }
         }
+        let builder = Table::builder(tasks).index().column(0).name(None);
+        let mut table = builder.build(); //Table::new(tasks).to_string();
+        table.with(Style::modern());
+        println!("{}", table);
     }
 
     pub fn delete_task(&self, id: i32) {

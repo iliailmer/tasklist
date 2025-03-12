@@ -37,7 +37,7 @@ fn main() {
             status,
             description,
         } => mngr.update_task(id, status, description),
-        Commands::Show { kanban } => mngr.list_tasks(kanban),
+        Commands::Show {} => mngr.list_tasks(),
         Commands::Delete { id } => mngr.delete_task(id),
     }
 }

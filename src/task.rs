@@ -1,14 +1,18 @@
 use clap::ValueEnum;
 use std::fmt;
 use std::io::{self, Write};
-#[derive(Debug, Clone, Copy, ValueEnum, Eq, Hash, PartialEq)]
+use tabled::Tabled;
+#[derive(Debug, Clone, Copy, ValueEnum, Eq, Hash, PartialEq, Tabled)]
 pub enum Status {
-    #[value(name = "done")]
-    Done,
+    #[value(name = "not_started")]
+    #[tabled(rename = "🚀 Not Started")]
+    NotStarted,
+    #[tabled(rename = "⏳ In Progress")]
     #[value(name = "in_progress")]
     InProgress,
-    #[value(name = "not_started")]
-    NotStarted,
+    #[value(name = "done")]
+    #[tabled(rename = "✅ Done")]
+    Done,
 }
 
 #[allow(dead_code)]
@@ -34,10 +38,16 @@ impl Status {
         }
     }
 }
+impl fmt::Display for Status {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.as_label())
+    }
+}
 
-#[derive(Debug)]
+#[derive(Debug, Tabled)]
 pub struct Task {
     pub id: i32,
+    #[tabled(inline)]
     pub status: Status,
     pub description: String,
 }

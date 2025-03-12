@@ -3,11 +3,11 @@ use clap::{Parser, Subcommand};
 #[derive(Parser, Debug)]
 #[command(
     version,
-    name = "todolist",
+    name = "tasklist",
     about = "A to-do list app for command line"
 )]
 pub struct Cli {
-    #[arg(short, long, global = true, help = "Path to .tasklist file")]
+    #[arg(short, long, global = true, help = "Path to .tasklist file.")]
     pub file: Option<String>, // Path to custom tasklist file
 
     #[command(subcommand)]
@@ -34,10 +34,7 @@ pub enum Commands {
     },
     #[command(about = "View tasks")]
     #[clap(visible_alias = "ls")]
-    Show {
-        #[arg(short, long, help = "Show as kanban board by status")]
-        kanban: bool,
-    },
+    Show {},
     #[command(about = "Delete task")]
     #[clap(visible_alias = "rm")]
     Delete {
