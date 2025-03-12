@@ -3,7 +3,6 @@ use colored::Colorize;
 use std::fs::OpenOptions;
 use std::io::{BufRead, BufReader, BufWriter, Write};
 use tabled::{Table, settings::Style};
-use textwrap::fill;
 #[derive(Debug)]
 pub struct Mngr {
     tasklist_path: String,
@@ -59,8 +58,7 @@ impl Mngr {
         for line in lines.iter_mut() {
             let parts: Vec<&str> = line.split(",").collect();
             if parts.len() >= 3 && parts[0].parse::<i32>().unwrap() == id {
-                let new_description =
-                    String::from(description.unwrap_or(parts[2].to_string()).as_str());
+                let new_description = String::from(description.as_deref().unwrap_or(parts[2]));
                 let task = Task::new(id, status, new_description);
                 *line = task.to_file_string();
                 println!(
@@ -68,7 +66,8 @@ impl Mngr {
                     "Updated task:".green(),
                     format!("{}", task).yellow()
                 );
-                break; // stop iterations
+            } else {
+                continue;
             }
         }
         // write new .tasklist file
@@ -89,8 +88,6 @@ impl Mngr {
     pub fn list_tasks(&self) {
         let tasklist = OpenOptions::new()
             .read(true)
-            .create(true)
-            .append(true)
             .open(&self.tasklist_path)
             .expect("Failed to open task list");
         let reader = BufReader::new(&tasklist);
@@ -105,13 +102,12 @@ impl Mngr {
             if parts.len() >= 3 {
                 let id = parts[0].parse::<i32>().unwrap();
                 let status = Status::from_str(parts[1]);
-                let task = Task::new(id, status, fill(parts[2].to_string().as_str(), 50));
-                // println!("{}", task);
+                let task = Task::new(id, status, parts[2].to_string());
                 tasks.push(task);
             }
         }
         let builder = Table::builder(tasks).index().column(0).name(None);
-        let mut table = builder.build(); //Table::new(tasks).to_string();
+        let mut table = builder.build();
         table.with(Style::modern());
         println!("{}", table);
     }
