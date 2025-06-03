@@ -1,7 +1,7 @@
 use crate::task::{Status, Task};
 use colored::Colorize;
 use std::fs::OpenOptions;
-use std::io::{BufRead, BufReader, BufWriter, Write};
+use std::io::{BufRead, BufReader, BufWriter, Error, Write};
 use tabled::{Table, settings::Style};
 #[derive(Debug)]
 pub struct Mngr {
@@ -17,14 +17,18 @@ impl Mngr {
         }
     }
 
-    pub fn add_task(&self, description: String) {
+    pub fn add_task(&self, description: String) -> Result<(), Error> {
         let tasklist = OpenOptions::new()
             .read(true)
             .create(true)
             .append(true)
             .open(&self.tasklist_path)
-            .expect("Failed to open task list");
-
+            .map_err(|e| {
+                Error::new(
+                    e.kind(),
+                    format!("Could not open {}: {}", self.tasklist_path, e),
+                )
+            })?;
         let reader = BufReader::new(&tasklist);
         let mut max_id = 0;
         for line in reader.lines() {
@@ -37,14 +41,27 @@ impl Mngr {
         let task = Task::new(max_id + 1, Status::NotStarted, description);
         let mut writer = BufWriter::new(&tasklist);
         if !task.description.is_empty() {
-            task.write_to(&mut writer)
-                .expect("Failed to write task: empty description");
+            task.write_to(&mut writer).map_err(|e| {
+                Error::new(
+                    e.kind(),
+                    format!(
+                        "Could not write description to {}: {}",
+                        self.tasklist_path, e
+                    ),
+                )
+            })?;
         }
         writer.flush().expect("Failed to flush writer");
         println!("{} {}", "Added task:".green(), format!("{}", task).yellow());
+        Ok(())
     }
 
-    pub fn update_task(&self, id: i32, status: Status, description: Option<String>) {
+    pub fn update_task(
+        &self,
+        id: i32,
+        status: Status,
+        description: Option<String>,
+    ) -> Result<(), Error> {
         // read the .tasklist file
         // process each line. if the target task id is found, edit it by creating new task.
         let tasklist = OpenOptions::new()
@@ -52,7 +69,12 @@ impl Mngr {
             .create(true)
             .append(true)
             .open(&self.tasklist_path)
-            .expect("Failed to open task list");
+            .map_err(|e| {
+                Error::new(
+                    e.kind(),
+                    format!("Could not open task list {}: {}", self.tasklist_path, e),
+                )
+            })?;
         let reader = BufReader::new(&tasklist);
         let mut lines: Vec<String> = reader.lines().map(|l| l.unwrap()).collect();
         for line in lines.iter_mut() {
@@ -75,21 +97,31 @@ impl Mngr {
             .write(true)
             .truncate(true)
             .open(&self.tasklist_path)
-            .expect("Failed to open task list");
+            .map_err(|e| {
+                Error::new(
+                    e.kind(),
+                    format!("Could not update task list {}: {}", self.tasklist_path, e),
+                )
+            })?;
         let mut writer = BufWriter::new(&new_tasklist);
         for line in lines {
-            writer
-                .write_all(line.as_bytes())
-                .expect("Failed to write task");
+            writer.write_all(line.as_bytes())?;
         }
-        writer.flush().expect("Failed to flush writer");
+        writer.flush()?;
+
+        Ok(())
     }
 
-    pub fn list_tasks(&self) {
+    pub fn list_tasks(&self) -> Result<(), Error> {
         let tasklist = OpenOptions::new()
             .read(true)
             .open(&self.tasklist_path)
-            .expect("Failed to open task list");
+            .map_err(|e| {
+                Error::new(
+                    e.kind(),
+                    format!("Could not update task list {}: {}", self.tasklist_path, e),
+                )
+            })?;
         let reader = BufReader::new(&tasklist);
         println!(
             "Project: {}",
@@ -110,13 +142,11 @@ impl Mngr {
         let mut table = builder.build();
         table.with(Style::modern());
         println!("{}", table);
+        Ok(())
     }
 
-    pub fn delete_task(&self, id: i32) {
-        let tasklist = OpenOptions::new()
-            .read(true)
-            .open(&self.tasklist_path)
-            .expect("Failed to open task list");
+    pub fn delete_task(&self, id: i32) -> Result<(), Error> {
+        let tasklist = OpenOptions::new().read(true).open(&self.tasklist_path)?;
         let reader = BufReader::new(&tasklist);
         let mut lines: Vec<String> = reader.lines().map(|l| l.unwrap()).collect();
         let initial_len = lines.len();
@@ -127,20 +157,18 @@ impl Mngr {
         let new_tasklist = OpenOptions::new()
             .write(true)
             .truncate(true)
-            .open(&self.tasklist_path)
-            .expect("Failed to open task list");
+            .open(&self.tasklist_path)?;
         let mut writer = BufWriter::new(&new_tasklist);
         for line in lines.iter_mut() {
-            writer
-                .write_all(line.as_bytes())
-                .expect("Failed to write task");
-            writer.write_all(b"\n").expect("Failed to write newline");
+            writer.write_all(line.as_bytes())?;
+            writer.write_all(b"\n")?;
         }
-        writer.flush().expect("Failed to flush writer");
+        writer.flush()?;
         if initial_len > lines.len() {
             println!("{}", format!("Deleted task with ID {}", id).yellow());
         } else {
             println!("{}", format!("No task found with ID {}", id).red());
         }
+        Ok(())
     }
 }

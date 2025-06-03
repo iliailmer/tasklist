@@ -7,6 +7,7 @@ use crate::manager::Mngr;
 use clap::Parser;
 
 use std::fs;
+use std::io::Error;
 use std::path::PathBuf;
 
 fn get_tasklist_path(custom: Option<String>) -> (String, String) {
@@ -26,18 +27,31 @@ fn get_tasklist_path(custom: Option<String>) -> (String, String) {
     (path_string, title)
 }
 
-fn main() {
+fn main() -> Result<(), Error> {
     let args = Cli::parse();
     let (tasklist_path, project_title) = get_tasklist_path(args.file);
     let mngr = Mngr::new(tasklist_path, Some(project_title));
     match args.command {
-        Commands::Add { description } => mngr.add_task(description.unwrap()),
+        Commands::Add { description } => {
+            mngr.add_task(description.unwrap())?;
+            Ok(())
+        }
         Commands::Update {
             id,
             status,
             description,
-        } => mngr.update_task(id, status, description),
-        Commands::Show {} => mngr.list_tasks(),
-        Commands::Delete { id } => mngr.delete_task(id),
+        } => {
+            mngr.update_task(id, status, description)?;
+            Ok(())
+        }
+
+        Commands::Show {} => {
+            mngr.list_tasks()?;
+            Ok(())
+        }
+        Commands::Delete { id } => {
+            mngr.delete_task(id)?;
+            Ok(())
+        }
     }
 }
