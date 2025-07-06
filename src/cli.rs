@@ -34,6 +34,7 @@ pub enum Commands {
     },
     #[command(about = "View tasks")]
     #[clap(visible_alias = "ls")]
+    #[clap(visible_alias = "list")]
     Show {},
     #[command(about = "Delete task")]
     #[clap(visible_alias = "rm")]

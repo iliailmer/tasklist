@@ -50,6 +50,7 @@ pub struct Task {
     #[tabled(inline)]
     pub status: Status,
     pub description: String,
+    pub date: String,
 }
 
 impl fmt::Display for Task {
@@ -65,19 +66,21 @@ impl fmt::Display for Task {
 }
 
 impl Task {
-    pub fn new(id: i32, status: Status, description: String) -> Task {
+    pub fn new(id: i32, status: Status, description: String, date: String) -> Task {
         Task {
             id,
             status,
             description,
+            date,
         }
     }
     pub fn to_file_string(&self) -> String {
         format!(
-            "{},{},{}",
+            "{},{},{},{}",
             self.id,
             self.status.as_label(),
-            self.description
+            self.description,
+            self.date
         )
     }
 
