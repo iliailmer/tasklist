@@ -2,6 +2,8 @@ use crate::task::{Status, Task};
 use colored::Colorize;
 use std::fs::OpenOptions;
 use std::io::{BufRead, BufReader, BufWriter, Error, Write};
+use tabled::settings::object::Segment;
+use tabled::settings::{Modify, Width};
 use tabled::{Table, settings::Style};
 #[derive(Debug)]
 pub struct Mngr {
@@ -146,7 +148,9 @@ impl Mngr {
         }
         let builder = Table::builder(tasks).index().column(0).name(None);
         let mut table = builder.build();
-        table.with(Style::modern());
+        table
+            .with(Style::modern())
+            .with(Modify::new(Segment::all()).with(Width::wrap(64).keep_words(true)));
         println!("{table}");
         Ok(())
     }

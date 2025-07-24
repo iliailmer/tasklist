@@ -15,6 +15,8 @@ pub enum Status {
     Done,
 }
 
+pub const SEP: &str = "\t";
+
 #[allow(dead_code)]
 impl Status {
     pub const DONE_LABEL: &'static str = "✅ Done";
@@ -57,10 +59,11 @@ impl fmt::Display for Task {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "{:<4} | {:<14} | {:<256}",
-            self.id,                // Right-align ID, 3 chars
-            self.status.as_label(), // Left-align status, 15 chars
-            self.description,       // Description follows
+            "{} | {} | {} | {}",
+            self.id,
+            self.date,
+            self.status.as_label(),
+            self.description,
         )
     }
 }
@@ -76,7 +79,7 @@ impl Task {
     }
     pub fn to_file_string(&self) -> String {
         format!(
-            "{},{},{},{}",
+            "{}{SEP}{}{SEP}{}{SEP}{}",
             self.id,
             self.status.as_label(),
             self.description,
