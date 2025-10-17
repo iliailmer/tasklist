@@ -20,7 +20,7 @@ pub enum Commands {
     #[clap(visible_alias = "a")]
     Add {
         #[arg(short, long)]
-        description: Option<String>, // name or description of the task
+        description: String, // name or description of the task (required)
     },
     #[command(about = "Update an existing task")]
     #[clap(visible_alias = "u")]
@@ -35,7 +35,10 @@ pub enum Commands {
     #[command(about = "View tasks")]
     #[clap(visible_alias = "ls")]
     #[clap(visible_alias = "list")]
-    Show {},
+    Show {
+        #[arg(short, long, help = "Display tasks in Kanban board view")]
+        kanban: bool,
+    },
     #[command(about = "Delete task")]
     #[clap(visible_alias = "rm")]
     Delete {

@@ -116,7 +116,7 @@ impl Mngr {
         Ok(())
     }
 
-    pub fn list_tasks(&self) -> Result<(), Error> {
+    pub fn list_tasks(&self, kanban: bool) -> Result<(), Error> {
         let tasklist = OpenOptions::new()
             .read(true)
             .open(&self.tasklist_path)
@@ -146,13 +146,74 @@ impl Mngr {
                 tasks.push(task);
             }
         }
-        let builder = Table::builder(tasks).index().column(0).name(None);
-        let mut table = builder.build();
-        table
-            .with(Style::modern())
-            .with(Modify::new(Segment::all()).with(Width::wrap(64).keep_words(true)));
-        println!("{table}");
+
+        if kanban {
+            self.display_kanban(&tasks);
+        } else {
+            let builder = Table::builder(tasks).index().column(0).name(None);
+            let mut table = builder.build();
+            table
+                .with(Style::modern())
+                .with(Modify::new(Segment::all()).with(Width::wrap(64).keep_words(true)));
+            println!("{table}");
+        }
         Ok(())
+    }
+
+    fn display_kanban(&self, tasks: &[Task]) {
+        use std::collections::HashMap;
+
+        // Group tasks by status
+        let mut grouped: HashMap<Status, Vec<&Task>> = HashMap::new();
+        for task in tasks {
+            grouped.entry(task.status).or_insert_with(Vec::new).push(task);
+        }
+
+        let column_width = 30;
+        let columns = vec![
+            (Status::NotStarted, "🚀 NOT STARTED".cyan().bold()),
+            (Status::InProgress, "⏳ IN PROGRESS".yellow().bold()),
+            (Status::Done, "✅ DONE".green().bold()),
+        ];
+
+        // Print column headers
+        println!();
+        for (_, header) in &columns {
+            print!("{:width$} ", header, width = column_width);
+        }
+        println!();
+
+        // Print separator
+        for _ in &columns {
+            print!("{} ", "─".repeat(column_width).bright_black());
+        }
+        println!();
+
+        // Find max number of tasks in any column
+        let max_tasks = grouped.values().map(|v| v.len()).max().unwrap_or(0);
+
+        // Print tasks row by row
+        for i in 0..max_tasks {
+            for (status, _) in &columns {
+                if let Some(task_list) = grouped.get(status) {
+                    if let Some(task) = task_list.get(i) {
+                        let truncated = if task.description.len() > column_width - 5 {
+                            format!("{}...", &task.description[..column_width - 8])
+                        } else {
+                            task.description.clone()
+                        };
+                        let display = format!("[{}] {}", task.id, truncated);
+                        print!("{:width$} ", display, width = column_width);
+                    } else {
+                        print!("{:width$} ", "", width = column_width);
+                    }
+                } else {
+                    print!("{:width$} ", "", width = column_width);
+                }
+            }
+            println!();
+        }
+        println!();
     }
 
     pub fn delete_task(&self, id: i32) -> Result<(), Error> {

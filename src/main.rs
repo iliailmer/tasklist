@@ -33,7 +33,7 @@ fn main() -> Result<(), Error> {
     let mngr = Mngr::new(tasklist_path, Some(project_title));
     match args.command {
         Commands::Add { description } => {
-            mngr.add_task(description.unwrap())?;
+            mngr.add_task(description)?;
             Ok(())
         }
         Commands::Update {
@@ -45,8 +45,8 @@ fn main() -> Result<(), Error> {
             Ok(())
         }
 
-        Commands::Show {} => {
-            mngr.list_tasks()?;
+        Commands::Show { kanban } => {
+            mngr.list_tasks(kanban)?;
             Ok(())
         }
         Commands::Delete { id } => {
