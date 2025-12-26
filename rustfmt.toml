@@ -1,0 +1,33 @@
+# Rust formatting configuration (stable features only)
+# Following Rust community standards (https://rust-lang.github.io/rustfmt/)
+
+# Edition to use (should match Cargo.toml)
+edition = "2024"
+
+# Maximum line width
+max_width = 100
+
+# Use field initialization shorthand if possible
+use_field_init_shorthand = true
+
+# Use small heuristics to determine if an item should be on one line
+use_small_heuristics = "Default"
+
+# Newline style
+newline_style = "Unix"
+
+# Match block trailing comma
+match_block_trailing_comma = true
+
+# Remove nested parens
+remove_nested_parens = true
+
+# Indent style
+hard_tabs = false
+tab_spaces = 4
+
+# Function definitions
+fn_params_layout = "Tall"
+
+# Force explicit ABI
+force_explicit_abi = true

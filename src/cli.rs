@@ -10,8 +10,24 @@ pub struct Cli {
     #[arg(short, long, global = true, help = "Path to .tasklist file.")]
     pub file: Option<String>, // Path to custom tasklist file
 
+    #[arg(
+        short,
+        long,
+        global = true,
+        help = "Show verbose output (file paths, etc.)"
+    )]
+    pub verbose: bool,
+
+    #[arg(
+        short,
+        long,
+        global = true,
+        help = "Display tasks in Kanban board view"
+    )]
+    pub kanban: bool,
+
     #[command(subcommand)]
-    pub command: Commands, // name or description of the task
+    pub command: Option<Commands>,
 }
 
 #[derive(Subcommand, Debug)]
@@ -20,7 +36,7 @@ pub enum Commands {
     #[clap(visible_alias = "a")]
     Add {
         #[arg(short, long)]
-        description: String, // name or description of the task (required)
+        description: String,
     },
     #[command(about = "Update an existing task")]
     #[clap(visible_alias = "u")]

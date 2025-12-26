@@ -1,4 +1,3 @@
-use chrono::{DateTime, Local, Utc};
 use clap::ValueEnum;
 use std::fmt;
 use std::io::{self, Write};

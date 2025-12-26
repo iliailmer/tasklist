@@ -1,0 +1,77 @@
+# Clippy linting configuration
+# Following Rust community best practices
+
+# Cognitive complexity threshold
+cognitive-complexity-threshold = 30
+
+# Maximum allowed lines in a function
+too-many-lines-threshold = 100
+
+# Maximum allowed arguments for a function
+too-many-arguments-threshold = 7
+
+# Type complexity threshold
+type-complexity-threshold = 250
+
+# Single char binding names to allow
+single-char-binding-names-threshold = 4
+
+# Vec box size threshold
+vec-box-size-threshold = 4096
+
+# Maximum size of arrays to lint
+array-size-threshold = 512000
+
+# Avoid breaking exported API
+avoid-breaking-exported-api = true
+
+# Disallowed methods/types/macros (none for now, can be added)
+disallowed-methods = []
+disallowed-types = []
+disallowed-macros = []
+
+# Maximum trait bounds
+max-trait-bounds = 3
+
+# Maximum suggested slice pattern length
+max-suggested-slice-pattern-length = 3
+
+# Allowed wildcard imports
+allowed-wildcard-imports = []
+
+# Warn on missing documentation in public items
+missing-docs-in-crate-items = false
+
+# Standard library facades (none by default)
+standard-macro-braces = []
+
+# Enforced import renames (none by default)
+enforced-import-renames = []
+
+# Allow expect and unwrap in tests
+allow-expect-in-tests = true
+allow-unwrap-in-tests = true
+
+# Allow print macros
+allow-print-in-tests = true
+
+# Suppress warnings for dbg! macro
+allow-dbg-in-tests = true
+
+# Literal representation improvements
+literal-representation-threshold = 4
+
+# Large error threshold
+large-error-threshold = 128
+
+# Trivial copy size limit
+trivial-copy-size-limit = 128
+
+# Max stack size for pass by value
+pass-by-value-size-limit = 256
+
+# Struct excessive bools limit
+max-struct-bools = 3
+
+# Function excessive bools limit
+max-fn-params-bools = 3
