@@ -4,13 +4,13 @@ use std::io::{self, Write};
 use tabled::Tabled;
 #[derive(Debug, Clone, Copy, ValueEnum, Eq, Hash, PartialEq, Tabled)]
 pub enum Status {
-    #[value(name = "not_started")]
+    #[value(name = "not_started", alias = "ns")]
     #[tabled(rename = "🚀 Not Started")]
     NotStarted,
     #[tabled(rename = "⏳ In Progress")]
-    #[value(name = "in_progress")]
+    #[value(name = "in_progress", alias = "ip")]
     InProgress,
-    #[value(name = "done")]
+    #[value(name = "done", alias = "d")]
     #[tabled(rename = "✅ Done")]
     Done,
 }

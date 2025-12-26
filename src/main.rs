@@ -1,6 +1,7 @@
 mod cli;
 mod manager;
 mod task;
+mod tui;
 
 use crate::cli::{Cli, Commands};
 use crate::manager::Mngr;
@@ -45,6 +46,7 @@ fn main() {
         }) => mngr.update_task(id, status, description),
         Some(Commands::Show { kanban }) => mngr.list_tasks(kanban),
         Some(Commands::Delete { id }) => mngr.delete_task(id),
+        Some(Commands::Tui) => tui::run(mngr),
         None => mngr.list_tasks(args.kanban), // Default: show tasks
     };
 

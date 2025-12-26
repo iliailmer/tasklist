@@ -61,4 +61,6 @@ pub enum Commands {
         #[arg(short, long, help = "ID of task being deleted")]
         id: i32,
     },
+    #[command(about = "Launch interactive TUI")]
+    Tui,
 }

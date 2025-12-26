@@ -1,6 +1,6 @@
 [package]
 name = "tasklist"
-version = "0.7.0"
+version = "0.8.0"
 edition = "2024"
 authors = ["Ilia Ilmer <contact@iliailmer.com>"]
 description = "A fast, reliable CLI todo list with atomic operations and file locking"
@@ -16,8 +16,10 @@ exclude = [".github/", "tests/"]
 chrono = "0.4.41"
 clap = { version = "4.5.30", features = ["derive"] }
 colored = "3.0.0"
+crossterm = "0.28"
 fs2 = "0.4"
 home = "0.5.11"
+ratatui = "0.29"
 tabled = "0.18.0"
 terminal_size = "0.4"
 tempfile = "3.15"

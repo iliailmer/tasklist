@@ -145,7 +145,7 @@ impl Mngr {
         Ok(())
     }
 
-    pub fn list_tasks(&self, kanban: bool) -> Result<(), Error> {
+    pub fn get_tasks(&self) -> Result<Vec<Task>, Error> {
         let tasklist = OpenOptions::new()
             .read(true)
             .open(&self.tasklist_path)
@@ -156,10 +156,6 @@ impl Mngr {
                 )
             })?;
         let reader = BufReader::new(&tasklist);
-        println!(
-            "Project: {}",
-            self.title.as_ref().unwrap_or(&String::from("My Tasks"))
-        );
         let mut tasks: Vec<Task> = vec![];
         for line in reader.lines() {
             let line =
@@ -180,6 +176,15 @@ impl Mngr {
                 tasks.push(task);
             }
         }
+        Ok(tasks)
+    }
+
+    pub fn list_tasks(&self, kanban: bool) -> Result<(), Error> {
+        println!(
+            "Project: {}",
+            self.title.as_ref().unwrap_or(&String::from("My Tasks"))
+        );
+        let tasks = self.get_tasks()?;
 
         if tasks.is_empty() {
             println!("{}", "No tasks found. Add a task to get started!".yellow());
