@@ -1,5 +1,10 @@
 # tasklist
 
+[![CI](https://github.com/iliailmer/tasklist/actions/workflows/ci.yml/badge.svg)](https://github.com/iliailmer/tasklist/actions/workflows/ci.yml)
+[![Crates.io](https://img.shields.io/crates/v/tasklist.svg)](https://crates.io/crates/tasklist)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![codecov](https://codecov.io/gh/iliailmer/tasklist/branch/main/graph/badge.svg)](https://codecov.io/gh/iliailmer/tasklist)
+
 A fast, reliable command-line task manager written in Rust with atomic file operations and file locking.
 
 ## Features
