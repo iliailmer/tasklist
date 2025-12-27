@@ -3,10 +3,10 @@ use std::fs;
 use std::path::PathBuf;
 use tempfile::TempDir;
 
-// Helper to run a takstui command with a specific file
+// Helper to run a tuibrd command with a specific file
 fn run_command(temp_dir: &PathBuf, args: &[&str]) -> std::process::Output {
     let manifest_dir = env!("CARGO_MANIFEST_DIR");
-    let binary_path = format!("{}/target/debug/takstui", manifest_dir);
+    let binary_path = format!("{}/target/debug/tuibrd", manifest_dir);
 
     std::process::Command::new(&binary_path)
         .args(args)
