@@ -97,25 +97,25 @@ impl App {
     }
 
     fn update_task_status(&mut self, status: Status) -> io::Result<()> {
-        if let Some(selected) = self.list_state.selected() {
-            if let Some(task) = self.tasks.get(selected) {
-                self.manager
-                    .update_task(task.id, status, None)
-                    .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
-                self.reload_tasks()?;
-            }
+        if let Some(selected) = self.list_state.selected()
+            && let Some(task) = self.tasks.get(selected)
+        {
+            self.manager
+                .update_task(task.id, status, None)
+                .map_err(io::Error::other)?;
+            self.reload_tasks()?;
         }
         Ok(())
     }
 
     fn delete_current_task(&mut self) -> io::Result<()> {
-        if let Some(selected) = self.list_state.selected() {
-            if let Some(task) = self.tasks.get(selected) {
-                self.manager
-                    .delete_task(task.id)
-                    .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
-                self.reload_tasks()?;
-            }
+        if let Some(selected) = self.list_state.selected()
+            && let Some(task) = self.tasks.get(selected)
+        {
+            self.manager
+                .delete_task(task.id)
+                .map_err(io::Error::other)?;
+            self.reload_tasks()?;
         }
         Ok(())
     }
@@ -124,7 +124,7 @@ impl App {
         if !self.input.is_empty() {
             self.manager
                 .add_task(self.input.clone())
-                .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+                .map_err(io::Error::other)?;
             self.input.clear();
             self.mode = AppMode::Normal;
             self.reload_tasks()?;
