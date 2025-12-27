@@ -3,15 +3,15 @@ use crate::task::{Status, Task};
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyModifiers},
     execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
 use ratatui::{
+    Frame, Terminal,
     backend::{Backend, CrosstermBackend},
     layout::{Alignment, Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, List, ListItem, ListState, Paragraph, Wrap},
-    Frame, Terminal,
 };
 use std::io;
 
@@ -73,7 +73,7 @@ impl App {
                 } else {
                     i + 1
                 }
-            }
+            },
             None => 0,
         };
         self.list_state.select(Some(i));
@@ -90,7 +90,7 @@ impl App {
                 } else {
                     i - 1
                 }
-            }
+            },
             None => 0,
         };
         self.list_state.select(Some(i));
@@ -174,44 +174,44 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<(
                 AppMode::Normal => match key.code {
                     KeyCode::Char('q') => return Ok(()),
                     KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                        return Ok(())
-                    }
+                        return Ok(());
+                    },
                     KeyCode::Down | KeyCode::Char('j') => app.next(),
                     KeyCode::Up | KeyCode::Char('k') => app.previous(),
                     KeyCode::Char('n') => {
                         app.mode = AppMode::AddingTask;
                         app.input.clear();
                         app.error_message = None;
-                    }
+                    },
                     KeyCode::Char('d') => {
                         if app.list_state.selected().is_some() && !app.tasks.is_empty() {
                             app.mode = AppMode::ConfirmDelete;
                             app.error_message = None;
                         }
-                    }
+                    },
                     KeyCode::Char('1') => {
                         if let Err(e) = app.update_task_status(Status::NotStarted) {
                             app.error_message = Some(format!("Error: {}", e));
                         }
-                    }
+                    },
                     KeyCode::Char('2') => {
                         if let Err(e) = app.update_task_status(Status::InProgress) {
                             app.error_message = Some(format!("Error: {}", e));
                         }
-                    }
+                    },
                     KeyCode::Char('3') => {
                         if let Err(e) = app.update_task_status(Status::Done) {
                             app.error_message = Some(format!("Error: {}", e));
                         }
-                    }
+                    },
                     KeyCode::Char('r') => {
                         if let Err(e) = app.reload_tasks() {
                             app.error_message = Some(format!("Error reloading: {}", e));
                         } else {
                             app.error_message = None;
                         }
-                    }
-                    _ => {}
+                    },
+                    _ => {},
                 },
                 AppMode::AddingTask => match key.code {
                     KeyCode::Enter => {
@@ -219,19 +219,19 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<(
                             app.error_message = Some(format!("Error: {}", e));
                             app.mode = AppMode::Normal;
                         }
-                    }
+                    },
                     KeyCode::Esc => {
                         app.mode = AppMode::Normal;
                         app.input.clear();
                         app.error_message = None;
-                    }
+                    },
                     KeyCode::Char(c) => {
                         app.input.push(c);
-                    }
+                    },
                     KeyCode::Backspace => {
                         app.input.pop();
-                    }
-                    _ => {}
+                    },
+                    _ => {},
                 },
                 AppMode::ConfirmDelete => match key.code {
                     KeyCode::Char('y') | KeyCode::Char('Y') => {
@@ -239,12 +239,12 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<(
                             app.error_message = Some(format!("Error: {}", e));
                         }
                         app.mode = AppMode::Normal;
-                    }
+                    },
                     KeyCode::Char('n') | KeyCode::Char('N') | KeyCode::Esc => {
                         app.mode = AppMode::Normal;
                         app.error_message = None;
-                    }
-                    _ => {}
+                    },
+                    _ => {},
                 },
             }
         }
@@ -295,7 +295,10 @@ fn ui(f: &mut Frame, app: &mut App) {
                     format!("{:3} ", task.id),
                     Style::default().fg(Color::DarkGray),
                 ),
-                Span::styled(format!("{} ", task.status), Style::default().fg(status_color)),
+                Span::styled(
+                    format!("{} ", task.status),
+                    Style::default().fg(status_color),
+                ),
                 Span::raw(&task.description),
                 Span::styled(
                     format!(" ({})", task.date),
@@ -333,11 +336,14 @@ fn ui(f: &mut Frame, app: &mut App) {
                         .title("New Task Description"),
                 );
             f.render_widget(input, chunks[2]);
-        }
+        },
         _ => {
             let help_text = vec![
                 Line::from(vec![
-                    Span::styled("Navigation: ", Style::default().add_modifier(Modifier::BOLD)),
+                    Span::styled(
+                        "Navigation: ",
+                        Style::default().add_modifier(Modifier::BOLD),
+                    ),
                     Span::raw("↑/k up, ↓/j down"),
                 ]),
                 Line::from(vec![
@@ -378,6 +384,6 @@ fn ui(f: &mut Frame, app: &mut App) {
                     .wrap(Wrap { trim: true });
                 f.render_widget(help, chunks[2]);
             }
-        }
+        },
     }
 }
