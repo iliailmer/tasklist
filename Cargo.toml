@@ -1,12 +1,12 @@
 [package]
-name = "tasklist"
+name = "brd"
 version = "0.8.0"
 edition = "2024"
 authors = ["Ilia Ilmer <contact@iliailmer.com>"]
 description = "A fast, reliable CLI todo list with atomic operations and file locking"
 readme = "README.md"
-homepage = "https://github.com/iliailmer/tasklist"
-repository = "https://github.com/iliailmer/tasklist"
+homepage = "https://github.com/iliailmer/board-rs"
+repository = "https://github.com/iliailmer/board-rs"
 license = "MIT"
 keywords = ["cli", "todo", "task", "productivity", "kanban"]
 categories = ["command-line-utilities"]

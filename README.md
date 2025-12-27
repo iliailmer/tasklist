@@ -1,9 +1,9 @@
-# tasklist
+# brd
 
-[![CI](https://github.com/iliailmer/tasklist/actions/workflows/ci.yml/badge.svg)](https://github.com/iliailmer/tasklist/actions/workflows/ci.yml)
-[![Crates.io](https://img.shields.io/crates/v/tasklist.svg)](https://crates.io/crates/tasklist)
+[![CI](https://github.com/iliailmer/board-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/iliailmer/board-rs/actions/workflows/ci.yml)
+[![Crates.io](https://img.shields.io/crates/v/brd.svg)](https://crates.io/crates/brd)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![codecov](https://codecov.io/gh/iliailmer/tasklist/branch/main/graph/badge.svg)](https://codecov.io/gh/iliailmer/tasklist)
+[![codecov](https://codecov.io/gh/iliailmer/board-rs/branch/main/graph/badge.svg)](https://codecov.io/gh/iliailmer/board-rs)
 
 A fast, reliable command-line task manager written in Rust with atomic file operations and file locking.
 
@@ -18,6 +18,12 @@ A fast, reliable command-line task manager written in Rust with atomic file oper
 
 ## Installation
 
+### From crates.io
+
+```bash
+cargo install brd
+```
+
 ### From Source
 
 ```bash
@@ -30,23 +36,23 @@ cargo install --path .
 
 ```bash
 # View tasks (default)
-tasklist
+brd
 
 # Add a task
-tasklist add -d "Task description"
-tasklist a -d "Task description"  # short alias
+brd add -d "Task description"
+brd a -d "Task description"  # short alias
 
 # Update task status
-tasklist update --id 1 --status in_progress
-tasklist u --id 1 --status ip  # with aliases
+brd update --id 1 --status in_progress
+brd u --id 1 --status ip  # with aliases
 
 # Delete task
-tasklist delete --id 1
-tasklist rm --id 1  # short alias
+brd delete --id 1
+brd rm --id 1  # short alias
 
 # Kanban view
-tasklist --kanban
-tasklist show --kanban
+brd --kanban
+brd show --kanban
 ```
 
 ### Status Aliases
@@ -62,7 +68,7 @@ Use shorter status values:
 Launch the interactive text-based interface:
 
 ```bash
-tasklist tui
+brd tui
 ```
 
 **TUI Controls:**

@@ -80,6 +80,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "812e12b5285cc515a9c72a5c1d3b6d46a19dac5acfef5265968c166106e31dd3"
 
 [[package]]
+name = "brd"
+version = "0.8.0"
+dependencies = [
+ "chrono",
+ "clap",
+ "colored",
+ "crossterm",
+ "fs2",
+ "home",
+ "ratatui",
+ "tabled",
+ "tempfile",
+ "terminal_size",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.19.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -791,22 +807,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
-]
-
-[[package]]
-name = "tasklist"
-version = "0.8.0"
-dependencies = [
- "chrono",
- "clap",
- "colored",
- "crossterm",
- "fs2",
- "home",
- "ratatui",
- "tabled",
- "tempfile",
- "terminal_size",
 ]
 
 [[package]]
