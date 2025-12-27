@@ -1,5 +1,5 @@
 [package]
-name = "tuibrd"
+name = "taskboard-rs"
 version = "0.8.0"
 edition = "2024"
 authors = ["Ilia Ilmer <contact@iliailmer.com>"]
@@ -11,6 +11,10 @@ license = "MIT"
 keywords = ["cli", "todo", "task", "productivity", "kanban"]
 categories = ["command-line-utilities"]
 exclude = [".github/", "tests/"]
+
+[[bin]]
+name = "tsk"
+path = "src/main.rs"
 
 [dependencies]
 chrono = "0.4.41"

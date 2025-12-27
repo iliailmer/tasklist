@@ -1,7 +1,7 @@
-# tuibrd
+# taskboard-rs
 
 [![CI](https://github.com/iliailmer/board-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/iliailmer/board-rs/actions/workflows/ci.yml)
-[![Crates.io](https://img.shields.io/crates/v/tuibrd.svg)](https://crates.io/crates/tuibrd)
+[![Crates.io](https://img.shields.io/crates/v/taskboard-rs.svg)](https://crates.io/crates/taskboard-rs)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![codecov](https://codecov.io/gh/iliailmer/board-rs/branch/main/graph/badge.svg)](https://codecov.io/gh/iliailmer/board-rs)
 
@@ -23,7 +23,7 @@ A fast, reliable command-line task manager written in Rust with atomic file oper
 ### From crates.io
 
 ```bash
-cargo install tuibrd
+cargo install taskboard-rs
 ```
 
 ### From Source
@@ -38,23 +38,23 @@ cargo install --path .
 
 ```bash
 # View tasks (default)
-tuibrd
+tsk
 
 # Add a task
-tuibrd add -d "Task description"
-tuibrd a -d "Task description"  # short alias
+tsk add -d "Task description"
+tsk a -d "Task description"  # short alias
 
 # Update task status
-tuibrd update --id 1 --status in_progress
-tuibrd u --id 1 --status ip  # with aliases
+tsk update --id 1 --status in_progress
+tsk u --id 1 --status ip  # with aliases
 
 # Delete task
-tuibrd delete --id 1
-tuibrd rm --id 1  # short alias
+tsk delete --id 1
+tsk rm --id 1  # short alias
 
 # Kanban view
-tuibrd --kanban
-tuibrd show --kanban
+tsk --kanban
+tsk show --kanban
 ```
 
 ### Status Aliases
@@ -70,7 +70,7 @@ Use shorter status values:
 Launch the interactive text-based interface:
 
 ```bash
-tuibrd tui
+tsk tui
 ```
 
 **TUI Controls:**
