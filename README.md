@@ -18,6 +18,8 @@ A fast, reliable command-line task manager written in Rust with atomic file oper
 
 ## Installation
 
+**Platform Support:** Linux and macOS only
+
 ### From crates.io
 
 ```bash
