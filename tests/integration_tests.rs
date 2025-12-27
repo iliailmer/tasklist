@@ -6,8 +6,7 @@ use tempfile::TempDir;
 // Helper to run a brd command with a specific file
 fn run_command(temp_dir: &PathBuf, args: &[&str]) -> std::process::Output {
     let manifest_dir = env!("CARGO_MANIFEST_DIR");
-    let binary_name = if cfg!(windows) { "brd.exe" } else { "brd" };
-    let binary_path = format!("{}/target/debug/{}", manifest_dir, binary_name);
+    let binary_path = format!("{}/target/debug/brd", manifest_dir);
 
     std::process::Command::new(&binary_path)
         .args(args)
